@@ -1,0 +1,9 @@
+""" Requirements for Streamlit app deployment
+"""
+altair
+matplotlib
+numpy
+pandas
+scikit-learn
+scipy
+streamlit
