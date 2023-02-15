@@ -1,5 +1,3 @@
-""" Requirements for Streamlit app deployment
-"""
 altair
 matplotlib
 numpy
