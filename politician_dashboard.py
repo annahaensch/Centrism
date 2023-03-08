@@ -34,7 +34,7 @@ def sidebar_text_field(label, columns=None, **input_params):
 
 st.title("The Perils of Political Centrism")
 
-st.markdown("Before we get started, here's a question")
+
 
 
 # mandatory = st.radio(
@@ -531,6 +531,11 @@ line = alt.Chart(pd.DataFrame({'Rate of Change': [0], "color":["white"]})).mark_
                     color = alt.Color('color:N', scale=None, legend=None))
 
 st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_width=True)
+
+st.markdown("You can learn more about the mathematics behind this app in this paper: \n"+
+  "Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. \n"+
+  "_A blue sky bifurcation in the dynamics of political candidates._ \n"+
+  "[arXiv preprint arXiv:2302.07993](https://arxiv.org/abs/2302.07993) (2023).")
 
 # mandatory = st.radio(
 #     "Now we'll ask again: do you think voting should be mandatory?",
