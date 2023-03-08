@@ -37,27 +37,27 @@ st.title("The Perils of Political Centrism")
 st.markdown("Before we get started, here's a question")
 
 
-mandatory = st.radio(
-    "Do you think voting should be mandatory?",
-    ('Yes','No'))
+# mandatory = st.radio(
+#     "Do you think voting should be mandatory?",
+#     ('Yes','No'))
 
-with open('survey.txt', 'r') as file:
-  lines = file.readlines()
-  if mandatory == "Yes":
-    yes = int(lines[0].split(",")[0]) + 1
-    no = int(lines[0].split(",")[1]) 
-  if mandatory == "No":
-    yes = int(lines[0].split(",")[0]) 
-    no = int(lines[0].split(",")[1]) + 1
+# with open('survey.txt', 'r') as file:
+#   lines = file.readlines()
+#   if mandatory == "Yes":
+#     yes = int(lines[0].split(",")[0]) + 1
+#     no = int(lines[0].split(",")[1]) 
+#   if mandatory == "No":
+#     yes = int(lines[0].split(",")[0]) 
+#     no = int(lines[0].split(",")[1]) + 1
 
-  yes_post = int(lines[1].split(",")[0])
-  no_post = int(lines[1].split(",")[1])
+#   yes_post = int(lines[1].split(",")[0])
+#   no_post = int(lines[1].split(",")[1])
 
-lines[0] = f"{yes},{no}\n"
+# lines[0] = f"{yes},{no}\n"
 
-# and write everything back
-with open('survey.txt', 'w') as file:
-    file.writelines(lines)
+# # and write everything back
+# with open('survey.txt', 'w') as file:
+#     file.writelines(lines)
 
 st.subheader("I. The Range of Voter Beliefs")
 
@@ -532,24 +532,24 @@ line = alt.Chart(pd.DataFrame({'Rate of Change': [0], "color":["white"]})).mark_
 
 st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_width=True)
 
-mandatory = st.radio(
-    "Now we'll ask again: do you think voting should be mandatory?",
-    ('Yes','No'))
+# mandatory = st.radio(
+#     "Now we'll ask again: do you think voting should be mandatory?",
+#     ('Yes','No'))
 
-with open('survey.txt', 'r') as file:
-  lines = file.readlines()
-  if mandatory == "Yes":
-    yes = int(lines[0].split(",")[0]) + 1
-    no = int(lines[0].split(",")[1]) 
-  if mandatory == "No":
-    yes = int(lines[0].split(",")[0]) 
-    no = int(lines[0].split(",")[1]) + 1
+# with open('survey.txt', 'r') as file:
+#   lines = file.readlines()
+#   if mandatory == "Yes":
+#     yes = int(lines[0].split(",")[0]) + 1
+#     no = int(lines[0].split(",")[1]) 
+#   if mandatory == "No":
+#     yes = int(lines[0].split(",")[0]) 
+#     no = int(lines[0].split(",")[1]) + 1
 
-  yes_post = int(lines[1].split(",")[0])
-  no_post = int(lines[1].split(",")[1])
+#   yes_post = int(lines[1].split(",")[0])
+#   no_post = int(lines[1].split(",")[1])
 
-lines[0] = f"{yes},{no}\n"
+# lines[0] = f"{yes},{no}\n"
 
-# and write everything back
-with open('survey.txt', 'w') as file:
-    file.writelines(lines)
+# # and write everything back
+# with open('survey.txt', 'w') as file:
+#     file.writelines(lines)
