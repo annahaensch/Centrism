@@ -59,6 +59,8 @@ st.title("The Perils of Political Centrism")
 # with open('survey.txt', 'w') as file:
 #     file.writelines(lines)
 
+st.markdown("TODO: Add some text about reading the paper...introduce ideas.")
+
 st.subheader("I. The Range of Voter Beliefs")
 
 st.markdown("We'll start by seeding some populations with initial belief \n"+
@@ -112,15 +114,15 @@ def pdf(x, model):
 
   return np.exp(model.score_samples(x))
 
-unimodal_model = get_gaussian_mixture_model(np.array([0.]), np.array([1.]))
+#unimodal_model = get_gaussian_mixture_model(np.array([0.]), np.array([1.]))
 multimodal_model = get_gaussian_mixture_model(means, variances)
 
-df["Unimodal Distribution"] = pdf(df["Position"],unimodal_model)
+#df["Unimodal Distribution"] = pdf(df["Position"],unimodal_model)
 df["Multimodal Distribution"] = pdf(df["Position"],multimodal_model)
 
 
 chart_data_wide = pd.melt(df.reset_index(), id_vars=["Position"], 
-  value_vars = ["Unimodal Distribution","Multimodal Distribution"])
+  value_vars = ["Multimodal Distribution"])
 
 chart_data_wide.rename(columns = {"variable":"Underlying Population",
                         "value":"Density"}, inplace = True)
@@ -128,7 +130,7 @@ chart_data_wide.rename(columns = {"variable":"Underlying Population",
 chart = alt.Chart(chart_data_wide).mark_line().encode(
     x=alt.X("Position", type = "quantitative"),
     y=alt.Y("Density", type = "quantitative"),
-    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}),
+    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}, legend = None),
     strokeWidth = alt.value(4)
     )
 
@@ -177,30 +179,30 @@ def get_plot_colors(left_share, right_share):
     right_color = right_red
   return left_color, right_color
 
-left_share = get_left_share(left_position = ell, right_position = r, model = unimodal_model)
-right_share = get_right_share(left_position = ell, right_position = r, model = unimodal_model)
-left_color, right_color = get_plot_colors(left_share, right_share)
+# left_share = get_left_share(left_position = ell, right_position = r, model = unimodal_model)
+# right_share = get_right_share(left_position = ell, right_position = r, model = unimodal_model)
+# left_color, right_color = get_plot_colors(left_share, right_share)
 
-chart_data = pd.DataFrame([[left_share],[right_share]], 
-          columns = ["share"],
-          index = ["Left Candidate", "Right Candidate"])
-chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["index"])
+# chart_data = pd.DataFrame([[left_share],[right_share]], 
+#           columns = ["share"],
+#           index = ["Left Candidate", "Right Candidate"])
+# chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["index"])
 
-# Horizontal stacked bar chart
-chart = (
-    alt.Chart(chart_data_wide)
-    .mark_bar()
-    .encode(
-        x=alt.X("value", type="quantitative", title=""),
-        y=alt.Y("index", type="nominal", title=""),
-        color = alt.condition(alt.datum.index == "Left Candidate", 
-                alt.value(left_color),
-                alt.value(right_color))
-    ).properties(
-    title='Vote Share with a Unimodal Electorate'
-)
-)
-st.altair_chart(chart, use_container_width=True)
+# # Horizontal stacked bar chart
+# chart = (
+#     alt.Chart(chart_data_wide)
+#     .mark_bar()
+#     .encode(
+#         x=alt.X("value", type="quantitative", title=""),
+#         y=alt.Y("index", type="nominal", title=""),
+#         color = alt.condition(alt.datum.index == "Left Candidate", 
+#                 alt.value(left_color),
+#                 alt.value(right_color))
+#     ).properties(
+#     title='Vote Share with a Unimodal Electorate'
+# )
+# )
+# st.altair_chart(chart, use_container_width=True)
 
 
 left_share = get_left_share(left_position = ell, right_position = r, model = multimodal_model)
@@ -223,7 +225,7 @@ chart = (
                 alt.value(left_color),
                 alt.value(right_color))
     ).properties(
-    title='Vote Share with a Multimodal Electorate'
+    title='Vote Share For Each Candidate'
 )
 )
 st.altair_chart(chart, use_container_width=True)
@@ -270,20 +272,19 @@ text = "then it looks like it's always in the best interest of the left candidat
 st.markdown(f_text + text)
 
 ell_positions = np.linspace(-5,r)
-left_shares_unimodal = []
+#left_shares_unimodal = []
 left_shares_multimodal = []
 for l in ell_positions:
-  left_share_unimodal = get_left_share(left_position = l, right_position = r, model = unimodal_model)
-  left_shares_unimodal.append(left_share_unimodal)
+  # left_share_unimodal = get_left_share(left_position = l, right_position = r, model = unimodal_model)
+  # left_shares_unimodal.append(left_share_unimodal)
   left_share_multimodal = get_left_share(left_position = l, right_position = r, model = multimodal_model)
   left_shares_multimodal.append(left_share_multimodal)
 
 chart_data = pd.DataFrame({"Position":ell_positions,
-                      "Multimodal Distribution":left_shares_unimodal,
-                      "Unimodal Distribution":left_shares_multimodal})
+                      "Multimodal Distribution":left_shares_multimodal})
 
 chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["Position"], 
-  value_vars = ["Unimodal Distribution","Multimodal Distribution"])
+  value_vars = ["Multimodal Distribution"])
 
 chart_data_wide.rename(columns = {"variable":"Underlying Population",
                         "value":"Vote Share"}, inplace = True)
@@ -294,7 +295,7 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
             type = "quantitative", 
             title = "Left candidate vote share",
             axis = alt.Axis(values = [0, 0.5, 1], grid = True)),
-    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}),
+    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}, legend = None),
     strokeWidth = alt.value(4)
     ).properties(
         title='Left Candidate Vote Share as A Function of Position'
@@ -309,12 +310,17 @@ st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_
 st.markdown("As soon as the left candidate crosses the dashed line, they "+
             "have more than 50% of the votes and therefore they have won the election.")
 
+
+st.markdown("__Question:__ Where does the left candidate have to be on the spectrum in order to win the election?")
+
+# TODO: show answer
+
 st.subheader("II. Opportunistic Candidates")
 
 # Add an alpha slider to the sidebar:
 alpha_text = st.markdown("**1. Choose your &alpha; value.**")
 alpha= st.slider(
-    r"This is a measure of the left-wing candidate's eagerness. A greater value of $\alpha$, means the left-wing candidtae will move more eagerly (i.e. rapidly) towards the opportunistic position.",
+    r"This is a measure of the left-wing candidate's eagerness. A greater value of $\alpha$, means the left-wing candidate will move more eagerly (i.e. rapidly) towards the opportunistic position.",
     0.0, 2.0, (1.5)
 )
 
@@ -383,14 +389,15 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     )
 st.altair_chart(chart, use_container_width=True)
 
+st.markdown("__Question:__ What do you notice?  Is there ever a way for the less eager candidate to win?")
 
 st.subheader("III. Loyal Voters")
 
 # Add a gamma slider to the sidebar:
 gamma_text = st.markdown("**3. Choose your &gamma; value.**")
 gamma = st.slider(
-     	r'This is a measure of voter loyalty. A greater value of $\gamma$, means the voter is more likely to stick with the candidate, even as their position drifts.',
-    	0.0, 10.0, (5.0)
+      r'This is a measure of voter loyalty. A greater value of $\gamma$, means the voter is more likely to stick with the candidate, even as their position drifts.',
+      0.0, 10.0, (5.0)
 )
 
 def g_func(z, gamma):
@@ -433,54 +440,70 @@ ell_positions = np.linspace(-5,r)
 chart_data = pd.DataFrame()
 chart_data["Left"] = ell_positions
 
-left_shares = []
-left_positions = []
-for l in ell_positions:
-	left_share = left_share_with_g(left_position = l, right_position = r, gamma = gamma, model = unimodal_model)
-	left_shares.append(left_share)
-chart_data["Unimodal Distribution"] = left_shares
+# left_shares = []
+# left_positions = []
+# for l in ell_positions:
+#   left_share = left_share_with_g(left_position = l, right_position = r, gamma = gamma, model = unimodal_model)
+#   left_shares.append(left_share)
+# chart_data["Unimodal Distribution"] = left_shares
 
 left_shares = []
 left_positions = []
+right_shares = []
 for l in ell_positions:
-	left_share = left_share_with_g(left_position = l, right_position = r, gamma = gamma, model = multimodal_model)
-	left_shares.append(left_share)
-chart_data["Multimodal Distribution"] = left_shares
+  left_share = left_share_with_g(left_position = l, right_position = r, gamma = gamma, model = multimodal_model)
+  left_shares.append(left_share)
 
-chart_data_wide = pd.melt(chart_data, id_vars=["Left"], 
-  value_vars = ["Unimodal Distribution","Multimodal Distribution"])
-chart_data_wide.rename(columns = {"variable":"Underlying Population",
-                        "value":"Left Candidate Vote Share",
-                        "Left":"Candidate Position"}, inplace = True)
+  right_share = right_share_with_g(left_position = l, right_position = r, gamma = gamma, model = multimodal_model)
+  right_shares.append(right_share)
+
+chart_data["Left Candidate"] = left_shares
+chart_data["Right Candidate"] = right_shares
+
+chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["Left"], 
+  value_vars = ["Left Candidate","Right Candidate"])
+chart_data_wide.rename(columns = {"variable":"Candidate",
+                                  "Left":"Candidate Position"}, inplace = True)
 
 chart = alt.Chart(chart_data_wide).mark_line().encode(
-    x=alt.X("Candidate Position", 
-            type="quantitative", 
-            title="Left candidate position"),
-    y=alt.Y("Left Candidate Vote Share", 
-            type = "quantitative", 
-            title = "Left candidate vote share",
-            axis = alt.Axis(values = [0, 0.5, 1], grid = True)),
-    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}),
+    x=alt.X("Candidate Position", type="quantitative", title="Left candidate position"),
+    y=alt.Y("value", type = "quantitative", title = "Candidate vote share"),
+    color=alt.Color('Candidate',scale={"range": [left_blue, right_red]}),
+    strokeDash='Candidate',
     strokeWidth = alt.value(4)
     ).properties(
-        title='Left Candidate Vote Share as A Function of Position with Opportunism'
+        title='Candidate Vote Share as A Function of Position with Opportunism'
     )
 
-line = alt.Chart(pd.DataFrame({'Vote Share': [0.5,1], "color":["white","black"]})).mark_rule(strokeDash=[5, 10]).encode(
-                    y='Vote Share',
-                    color = alt.Color('color:N', scale=None, legend=None))
+st.altair_chart(chart, use_container_width=True)
 
-st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_width=True)
+# chart = alt.Chart(chart_data_wide).mark_line().encode(
+#     x=alt.X("Candidate Position", 
+#             type="quantitative", 
+#             title="Left candidate position"),
+#     y=alt.Y("Left Candidate Vote Share", 
+#             type = "quantitative", 
+#             title = "Left candidate vote share",
+#             axis = alt.Axis(values = [0, 0.5, 1], grid = True)),
+#     color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}, legend = None),
+#     strokeWidth = alt.value(4)
+#     ).properties(
+#         title='Left Candidate Vote Share as A Function of Position with Opportunism'
+#     )
 
-st.markdown("Once again, as soon as the left candidate crosses the dashed line, they "+
-            "have more than 50% of the votes and therefore they have won the election.")
+# line = alt.Chart(pd.DataFrame({'Vote Share': [0.5,1], "color":["white","black"]})).mark_rule(strokeDash=[5, 10]).encode(
+#                     y='Vote Share',
+#                     color = alt.Color('color:N', scale=None, legend=None))
+
+#st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_width=True)
+
+st.markdown("__Question__: At what point does the left candidate win the election?  Why is it possible for the blue candidate to win with less that 50\% of the vote?")
+
 
 
 st.markdown("Next, we will look at how the share of votes changes as a function "+
             "of candidate position, with the introduction of the intolerant voter "+
-            "function.  We'll define the following two functions to help us "+
-            "compute numerical derivatives.  We'll be approximating derivatives "+
+            "function.  We'll be approximating derivatives "+
             "using the symmetric difference quotient.")
 
 def left_derivative(x,right_position, gamma, model, h = 0.001):
@@ -499,19 +522,19 @@ def right_derivative(x,left_position, gamma, model, h = 0.001):
 ell_positions = np.linspace(-5,r -.001)
 chart_data = pd.DataFrame()
 chart_data["Left"] = ell_positions
-left_derivatives_unimodal = []
+#left_derivatives_unimodal = []
 left_derivatives_multimodal = []
 for l in ell_positions:
-  D_unimodal = left_derivative(l,right_position = r, gamma = gamma, model = unimodal_model)
-  left_derivatives_unimodal.append(D_unimodal)
+  # D_unimodal = left_derivative(l,right_position = r, gamma = gamma, model = unimodal_model)
+  # left_derivatives_unimodal.append(D_unimodal)
   D_multimodal = left_derivative(l,right_position = r, gamma = gamma, model = multimodal_model)
   left_derivatives_multimodal.append(D_multimodal)
 
-chart_data["Unimodal Distribution"] = left_derivatives_unimodal
+#chart_data["Unimodal Distribution"] = left_derivatives_unimodal
 chart_data["Multimodal Distribution"] = left_derivatives_multimodal
 
 chart_data_wide = pd.melt(chart_data, id_vars=["Left"], 
-  value_vars = ["Unimodal Distribution","Multimodal Distribution"])
+  value_vars = ["Multimodal Distribution"])
 chart_data_wide.rename(columns = {"variable":"Underlying Population",
                         "value":"Rate of Change in Vote Share",
                         "Left":"Candidate Position"}, inplace = True)
@@ -519,7 +542,7 @@ chart_data_wide.rename(columns = {"variable":"Underlying Population",
 chart = alt.Chart(chart_data_wide).mark_line().encode(
     x=alt.X("Candidate Position", type="quantitative", title="Left candidate position"),
     y=alt.Y("Rate of Change in Vote Share", type = "quantitative", title = "Rate of change in vote share"),
-    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}),
+    color=alt.Color('Underlying Population',scale={"range": [left_blue, left_blue_light]}, legend = None),
     strokeWidth = alt.value(4)
     ).properties(
         title='Rate of Change in Left Candidate Vote Share as A Function of Position'
@@ -531,6 +554,8 @@ line = alt.Chart(pd.DataFrame({'Rate of Change': [0], "color":["white"]})).mark_
                     color = alt.Color('color:N', scale=None, legend=None))
 
 st.altair_chart((chart+ line).resolve_scale(color='independent'), use_container_width=True)
+
+st.markdown("__Question:__ Can you find a set of parameters so that the left candidate ")
 
 st.markdown("You can learn more about the mathematics behind this app in this paper: \n"+
   "Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. \n"+
