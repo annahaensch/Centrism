@@ -17,7 +17,7 @@ LEFT_BLUE = "#446B84"
 RIGHT_RED = "#E58073"
 CENTRIST_GREY = "#E8E8E8"
 
-def get_gaussian_mixture_model(means, variances):
+def get_gaussian_mixture_model(means, variances, weights):
   """ Initialize multimodal model with chosen parameters.
 
   Inputs: 
@@ -31,7 +31,7 @@ def get_gaussian_mixture_model(means, variances):
   gmm = GaussianMixture(n_components=n_components, random_state=0)
   gmm.means_ = np.array([[m] for m in means])
   gmm.covariances_ = np.array([[[s]] for s in variances])
-  gmm.weights_ = np.full(n_components,1/n_components)
+  gmm.weights_ = np.array([s for s in weights])
   gmm.precision_ = np.zeros(gmm.covariances_.shape)
   gmm.precisions_cholesky_ = np.zeros(gmm.covariances_.shape)
   for i in range(gmm.precision_.shape[0]):
@@ -59,12 +59,12 @@ def pdf(x, model):
 
   return np.exp(model.score_samples(x))
 
-st.title("The Perils of Political Centrism")
+st.title("ODEs and Mandatory Voting")
 
 st.markdown("TODO: Add some text about reading the paper...introduce ideas.")
 
 ############## Section I #######################
-st.subheader("I. The Range of Voter Beliefs")
+st.header("I. The Distribution of Voter Beliefs")
 #################################################
 
 st.markdown("""We'll start by seeding a population with political beliefs on a 
@@ -72,11 +72,15 @@ st.markdown("""We'll start by seeding a population with political beliefs on a
   sampled from a multimodal Gaussian distribution.  One feature of this kind of 
   distribution is that it splits a population of belief holders into several 
   subpopulations with their beliefs clustered around different means. 
-  You might stop here to ask yourself whether this sort of distribution is a 
-  reasonable one for the population of US voters.""")
+ """)
+
+st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
+ <p style="margin-left: 25px;">
+  Is this sort of distribution a reasonable one for the population of US voters.
+  </p>""", unsafe_allow_html=True)
 
 st.markdown(r"""Suppose we agree that it's reasonable and assume our population 
-  has beliefs that are sampled from an $M$-modal Gaussian where the $m^{th}$ 
+  has beliefs that are sampled from an mixture of $M$ Gaussians where the $m^{th}$ 
   mode has mean $\mu_m$ and variance $\sigma_m^2$. To keep things simple, we 
   will assume that mode choice follows a discrete uniform distribution and the 
   probability of a voter holding belief $x$ in the $m^{th}$ mode is sampled as 
@@ -93,21 +97,30 @@ st.latex(r'''
     -\frac{1}{2}\left(\frac{x - \mu_m}{\sigma_m}\right)^2}.
     ''')
 
+#TODO: Change title.
+
 st.markdown("""In the boxes below enter the means and variances that you'd like 
   to use for each of the Gaussian modes.""")
 
 # Input means and variances as strings
-c1, c2 = st.columns(2)
+c1, c2, c3 = st.columns(3)
 means = c1.text_input(label = "means", value = "-1,1")
 variances = c2.text_input(label = "variances", value = ".5, .5")
+weights = c3.text_input(label = "weights", value = ".5, .5")
 
 # Get means and variances as floats
 means = np.array([float(m.strip(" ")) for m in means.split(",")])
 variances = np.array([float(s.strip(" ")) for s in variances.split(",")])
+weights = np.array([float(w.strip(" ")) for w in weights.split(",")])
+weights = weights/ np.sum(weights)
 
 msg = """You have to have the same number of means and variances.  
   One for each mode."""
 assert len(means) == len(variances), msg
+
+msg = """You have to have the same number of means and weights.  
+  One for each mode."""
+assert len(means) == len(weights), msg
 
 # Compute relevant linspace for left-right spectrum
 a = np.argmin(means)
@@ -121,7 +134,7 @@ positions = np.linspace(m,M, n_positions)
 df = pd.DataFrame(positions, columns = ["Position"])
 
 # Compute probability density
-model = get_gaussian_mixture_model(means, variances)
+model = get_gaussian_mixture_model(means, variances, weights)
 x = df["Position"].values.reshape(-1,1)
 df["Density"] = pdf(x,model)
 
@@ -143,14 +156,15 @@ st.altair_chart(chart, use_container_width=True)
 
 
 ############## Section II #######################
-st.subheader("II. A Simple Election")
+st.header("II. When Voting is Mandatory")
 #################################################
 
-st.markdown(r"""Let's simulate a simple election.  Supppose that the left 
-  candidate, $L$, is in position $\ell$ and the right candidate, $R$, is in 
-  position $r$.  The left candidate gets all of the votes to their left and 
-  every vote up until the midway point between the $L$ and $R$.  The share of 
-  votes belonging to the left and right candidates, $S_L$ and $S_R$, 
+st.subheader("A. Static Candidates")
+st.markdown(r"""Let's simulate a simple election in which everybody votes.  Supppose 
+  that the left candidate, $L$, is in position $\ell$ and the right candidate, 
+  $R$, is in position $r$.  The left candidate gets all of the votes 
+  to their left and every vote up until the midway point between the $L$ and $R$.
+  The share of votes belonging to the left and right candidates, $S_L$ and $S_R$,
   respectively, can also be framed in terms of __area under the curve__, as """)
 
 st.latex(r'''
@@ -205,14 +219,13 @@ chart_data = pd.DataFrame([[left_share],[right_share]],
 chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["index"])
 
 # Make chart
-chart = (alt.Chart(chart_data_wide).mark_bar().encode(
-          x=alt.X("value", type="quantitative", title=""),
+chart = alt.Chart(chart_data_wide).mark_bar().encode(
+          x=alt.X("value", type="quantitative", title="Vote share"),
           y=alt.Y("index", type="nominal", title=""),
           color = alt.condition(alt.datum.index == "Left Candidate", 
                 alt.value(left_color),
                 alt.value(right_color))
           ).properties(title='Vote Share For Each Candidate')
-        )
 
 st.altair_chart(chart, use_container_width=True)
 
@@ -240,7 +253,7 @@ chart_left= alt.Chart(chart_data_wide_left).mark_area().encode(
     y=alt.Y("Density", type = "quantitative"),
     color =  alt.value(left_color),
     strokeWidth = alt.value(4)
-    )
+    ).properties(title='Who Wins?')
 
 chart_right= alt.Chart(chart_data_wide_right).mark_area().encode(
     x=alt.X("Position", type = "quantitative"),
@@ -249,7 +262,16 @@ chart_right= alt.Chart(chart_data_wide_right).mark_area().encode(
     strokeWidth = alt.value(4)
     )
 
+# Add scatter plot at left and right candidate positions.
+
 st.altair_chart(chart_left + chart_right, use_container_width=True)
+
+st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
+ <p style="margin-left: 25px;">What are some of the difficulties in making 
+ voting mandatory?  Do you know of any countries with mandatory voting?  
+ Why do some contries have it while others do not?  </p>""", unsafe_allow_html=True)
+
+st.subheader("B. Dynamic Candidates")
 
 text_1 = r"If the right candidate has a fixed position, in this case $r$ = "
 text_2 = f"{R}, "
@@ -297,7 +319,7 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     strokeDash='Candidate',
     strokeWidth = alt.value(4)
     ).properties(
-      title='Candidate Vote Share as A Function of Position with Voter Loyalty'
+      title='Candidate Vote Share as A Function of Position'
     )
 line = alt.Chart(pd.DataFrame({'Vote Share': [0.5], "color":["white"]})
                 ).mark_rule(strokeDash=[5, 10]).encode(
@@ -308,17 +330,18 @@ st.altair_chart(chart + line, use_container_width=True)
 st.markdown("""As soon as the left candidate crosses the dashed line, they have 
   more than 50% of the votes and therefore they have won the election.""")
 
-st.markdown("""<span style='background-color:#E58073'> __Question:__</span>  
-  <p style="margin-left: 25px;">Where does the left candidate have to be on the 
+st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
+ <p style="margin-left: 25px;">
+  Where does the left candidate have to be on the 
   spectrum in order to win the election?</p>""", unsafe_allow_html=True)
 
 # TODO: show answer - (I dont' think this will work).
 
-############## Section III #######################
-st.subheader("III. Opportunistic Candidates")
-##################################################
+# ############## Section III #######################
+# st.subheader("III. Opportunistic Candidates")
+# ##################################################
 
-st.markdown(r"""From the previous section we've seen that candidates might want 
+st.markdown(r"""From the previous discussion we've seen that candidates might want 
   to change their position on the political spectrum in order to get more votes. 
   Some candidates will do this more eagerly than others. Let's include a measure 
   of __candidate opportism__ into our model, and the larger this measure is, the 
@@ -421,19 +444,47 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""When candidates move according to steepest ascent they will 
-  eventually meet.""")
+  eventually meet as some equilibrium point.  In the plot below we show the votes
+  share for each candidate at this equilibrium point.""")
 
-st.markdown("""<span style='background-color:#E58073'> __Question:__</span>  
+left_share = get_left_share(left_position = ell_positions[-1], 
+                          right_position = r_positions[-1], 
+                          model = model)
+right_share = get_right_share(left_position = ell_positions[-1], 
+                          right_position = r_positions[-1], 
+                          model = model)
+left_color, right_color = get_plot_colors(left_share, right_share)
+
+# Get chart data
+chart_data = pd.DataFrame([[left_share],[right_share]], 
+          columns = ["share"],
+          index = ["Left Candidate", "Right Candidate"])
+chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["index"])
+
+# Make chart
+chart = alt.Chart(chart_data_wide).mark_bar().encode(
+          x=alt.X("value", type="quantitative", title="Vote share at equilibrium"),
+          y=alt.Y("index", type="nominal", title=""),
+          color = alt.condition(alt.datum.index == "Left Candidate", 
+                alt.value(left_color),
+                alt.value(right_color))
+          ).properties(title='Vote Share For Each Candidate')
+
+st.altair_chart(chart, use_container_width=True)
+
+st.markdown("""<span style='background-color:#E58073'> <b> Discussion Question</b></span>  
   <p style="margin-left: 25px;">What do you notice?  Is there ever a way for the 
   less eager candidate to win?</p>""", unsafe_allow_html=True)
 
 
 ############## Section IV #######################
-st.subheader("IV. Loyal Voters")
+st.subheader("III. When Voting is Not Mandatory")
 #################################################
 
-st.markdown("""Of course it's not always in a candidate's best interest to be 
-  overly opportunistic, since they might risk alienating voters on the far ends 
+st.markdown("""In the United States voting is not mandatory. If a voter doesn't 
+  feel strongly about either candidate they might choose to stay home. 
+  Therefore, it's not always in a candidate's best interest to be overly 
+  opportunistic, since they might risk alienating voters on the far ends 
   of their parties.  To account for this, we'll include a measure of __voter 
   loyalty__ into this model.  A high level of voter loyaly means that a voter is 
   likely to stick with a candidate even as their position drifts.""")
@@ -458,8 +509,7 @@ st.latex(r'''
   g(\mid r - x\mid ) \, \, dx.
   ''')
 
-st.markdown(r"""Using the slider below, you can choose your $\gamma$ values.  
-  Remember, a greater value of $\gamma$, means the voter is more likely to stick 
+st.markdown(r"""Using the slider below, you can choose your $\gamma$ values. Remember, a greater value of $\gamma$, means the voter is more likely to stick 
   with the candidate, even as their position moves.""")
 
 # Add a gamma slider
@@ -549,7 +599,7 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     )
 st.altair_chart(chart, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> __Question:__</span>  
+st.markdown("""<span style='background-color:#E58073'> Discussion Question</span>  
   <p style="margin-left: 25px;">At what point does the left candidate win the 
   election?  Why is it possible for the blue candidate to win with less that 
   50% of the vote?</p>""", 
@@ -617,13 +667,25 @@ line = alt.Chart(pd.DataFrame({'Rate of change in vote share': [0.],
 
 st.altair_chart(chart + line, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> __Question:__</span>  
+st.markdown("""<span style='background-color:#E58073'> Discussion Question</span>  
   <p style="margin-left: 25px;">What do you notice? Can you find a set of 
-  parameters so that the left candidate loses by moving in either direction
-  ?</p>""", unsafe_allow_html=True)
+  parameters so that the left candidate loses by moving in either direction? Looking 
+  at this graph, where are the fixed points and which of these are stable?</p>""", unsafe_allow_html=True)
+
+
+st.header("""III. Discontinuities""")
+
+st.markdown("""The political environment discontinuously impacts the optimal 
+  strategy of the candidates.""")
+
+# add l infinite plot.
 
 st.markdown("""You can learn more about the mathematics behind this app in this 
   paper: Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. 
   _A blue sky bifurcation in the dynamics of political candidates._ 
   [arXiv preprint arXiv:2302.07993](https://arxiv.org/abs/2302.07993) (2023).
+  """)
+
+st.markdown("""Many thanks to the Tufts Data Intensive Studies Center for 
+  supporting this work.
   """)
