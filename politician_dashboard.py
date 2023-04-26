@@ -292,17 +292,29 @@ chart_position = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
 
 st.altair_chart(chart_left + chart_right + chart_position, use_container_width=True)
 
+st.markdown("""
+  If voting is mandatory, then everyone in the population shows up to vote, so 
+  it's reasonable to assume that every person will vote for the candidate whose
+  position is closest to their beliefs.
+  """)
+# TODO: add some text about mandatory voting.
+
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
         <span class='highlight red'>
           <span class='bold'>
-            Discussion Question: <br>
+            Discussion Questions: <br>
           </span>
         </span>  
         <span class='highlight grey'>
-          What are some of the difficulties in making 
+          <ul>
+          <li> How is the border between the left candidate votes and right 
+          candidate votes determined and how would you express it in terms of 
+          the candidate positions?
+          <li>What are some of the difficulties in making 
            voting mandatory?  Do you know of any countries with mandatory voting?  
            Why do some contries have it while others do not?
+          </ul>
         </span>
       </div>
     """
@@ -335,14 +347,14 @@ for l in ell_positions:
 
 # Get chart data
 chart_data = pd.DataFrame()
-chart_data["Left"] = ell_positions
-chart_data["Left Share"] = left_shares
-chart_data["Right Share"] = right_shares
+chart_data["Left Position"] = ell_positions
+chart_data["Left"] = left_shares
+chart_data["Right"] = right_shares
 chart_data_wide = pd.melt(chart_data.reset_index(), 
-        id_vars=["Left"], 
-        value_vars = ["Left Share","Right Share"])
+        id_vars=["Left Position"], 
+        value_vars = ["Left","Right"])
 chart_data_wide.rename(columns = {"variable":" ",
-                                  "Left":"Candidate Position"}, inplace = True)
+                                  "Left Position":"Candidate Position"}, inplace = True)
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_line().encode(
@@ -351,13 +363,13 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
             title="Left candidate position"),
     y=alt.Y("value", 
             type = "quantitative", 
-            title = "Candidate vote share"),
+            title = "Proportion of population"),
     color=alt.Color(" ",
             scale={"range": [LEFT_BLUE, RIGHT_RED]}),
     strokeDash=" ",
     strokeWidth = alt.value(4)
     ).properties(
-      title='Candidate Vote Share as A Function of Position'
+      title="""Proportion of Population Voting for Each Candidate as a Function of Left Candidate Position"""
     )
 
 
@@ -391,12 +403,17 @@ q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
         <span class='highlight red'>
           <span class='bold'>
-            Discussion Question: <br>
+            Discussion Questions: <br>
           </span>
         </span>  
         <span class='highlight grey'>
-          Where does the left candidate have to be on the 
+        <ul>
+          <li>Why does proportion of the population voting for the left candidate 
+          get so close to 1, but never quite reach it? 
+          <li>Do the proportions always sum to 1? Why or why not?
+          <li>Where does the left candidate have to be on the 
           spectrum in order to win the election?
+        </ul>
         </span>
       </div>
     """
@@ -412,7 +429,7 @@ st.markdown(q, unsafe_allow_html=True)
 st.markdown(r"""From the previous discussion we've seen that candidates might want 
   to change their position on the political spectrum in order to get more votes. 
   Some candidates will do this more eagerly than others. Let's include a measure 
-  of __candidate opportism__ into our model, and the larger this measure is, the 
+  of __candidate opportunism__ into our model, and the larger this measure is, the 
   more eagerly (i.e. more rapidly) a candidate will move towards the 
   opportunistic position.""")
 
@@ -492,28 +509,28 @@ ell_positions, r_positions = coalescing_candidates(left_position = L,
                                                   beta = beta)
 
 # Get chart data
-chart_data = pd.DataFrame({"Left Candidate":ell_positions,
-                      "Right Candidate":r_positions})
+chart_data = pd.DataFrame({"Left":ell_positions,
+                      "Right":r_positions})
 chart_data_wide = pd.melt(chart_data.reset_index(), 
                         id_vars=["index"], 
-                        value_vars = ["Left Candidate","Right Candidate"])
-chart_data_wide.rename(columns = {"variable":"Candidate"}, inplace = True)
+                        value_vars = ["Left","Right"])
+chart_data_wide.rename(columns = {"variable":" "}, inplace = True)
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_line().encode(
     x=alt.X("index", type="quantitative", title="Timestep"),
     y=alt.Y("value", type = "quantitative", title = "Candidate position"),
-    color=alt.Color('Candidate',scale={"range": [LEFT_BLUE, RIGHT_RED]}),
-    strokeDash='Candidate',
+    color=alt.Color(" ",scale={"range": [LEFT_BLUE, RIGHT_RED]}),
+    strokeDash=" ",
     strokeWidth = alt.value(4)
     ).properties(
-        title='Candidates Moving Accoring to Steepest Ascent'
+        title='Candidates Moving According to Steepest Ascent'
     )
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""When candidates move according to steepest ascent they will 
-  eventually meet as some equilibrium point.  In the plot below we show the votes
-  share for each candidate at this equilibrium point.""")
+  eventually meet as some collision point.  In the plot below we show the votes
+  share for each candidate at this point.""")
 
 left_share = get_left_share(left_position = ell_positions[-1], 
                           right_position = r_positions[-1], 
@@ -531,12 +548,12 @@ chart_data_wide = pd.melt(chart_data.reset_index(), id_vars=["index"])
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_bar().encode(
-          x=alt.X("value", type="quantitative", title="Vote share at equilibrium"),
+          x=alt.X("value", type="quantitative", title="Vote share at collision"),
           y=alt.Y("index", type="nominal", title=""),
           color = alt.condition(alt.datum.index == "Left Candidate", 
                 alt.value(left_color),
                 alt.value(right_color))
-          ).properties(title='Vote Share For Each Candidate')
+          ).properties(title='Proportion of Population Voting For Each Candidate')
 
 st.altair_chart(chart, use_container_width=True)
 
@@ -545,12 +562,19 @@ q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
         <span class='highlight red'>
           <span class='bold'>
-            Discussion Question: <br>
+            Discussion Questions: <br>
           </span>
         </span>  
         <span class='highlight grey'>
-          What do you notice?  Is there ever a way for the less eager candidate 
+        <ul>
+          <li>What happens to the equilibrium position when the left candidate 
+          is very opportunistic and right candidate is not?
+          <li>Is there ever a way for the less eager candidate 
           to win?
+          <li> This model proposed here doesn't allow the candadates to cross 
+          over each other.  What would happen if we loosened these restrictions?  
+          Would our formulas still work? 
+        </ul>
         </span>
       </div>
     """
@@ -656,12 +680,12 @@ for l in ell_positions:
 # Prepare chart data
 chart_data = pd.DataFrame()
 chart_data["Left candidate position"] = ell_positions
-chart_data["Left Candidate"] = left_shares
-chart_data["Right Candidate"] = right_shares
+chart_data["Left"] = left_shares
+chart_data["Right"] = right_shares
 chart_data_wide = pd.melt(chart_data.reset_index(), 
                           id_vars=["Left candidate position"], 
-                          value_vars = ["Left Candidate","Right Candidate"])
-chart_data_wide.rename(columns = {"variable":"Candidate"}, inplace = True)
+                          value_vars = ["Left","Right"])
+chart_data_wide.rename(columns = {"variable":" "}, inplace = True)
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_line().encode(
@@ -669,13 +693,13 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
             type="quantitative"),
     y=alt.Y("value", 
             type = "quantitative", 
-            title = "Candidate vote share"),
-    color=alt.Color('Candidate',
+            title = "Proportion of population"),
+    color=alt.Color(' ',
             scale={"range": [LEFT_BLUE, RIGHT_RED]}),
-    strokeDash='Candidate',
+    strokeDash=' ',
     strokeWidth = alt.value(4)
     ).properties(
-        title='Candidate Vote Share as A Function of Position with Voter Loyalty'
+        title='Proportion of Population Voting for Each Candidate as A Function of Position with Voter Loyalty'
     )
 st.altair_chart(chart, use_container_width=True)
 
@@ -683,12 +707,19 @@ q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
         <span class='highlight red'>
           <span class='bold'>
-            Discussion Question: <br>
+            Discussion Questions: <br>
           </span>
         </span>  
         <span class='highlight grey'>
-          At what point does the left candidate win the election?  Why is it 
+        <ul>
+          <li>Why does proportion of the population voting for the left candidate 
+          get so close to 1, but never quite reach it? 
+          <li>Do the proportions always sum to 1? Why or why not?
+          <li>Where does the left candidate have to be on the 
+          spectrum in order to win the election?
+          <li>At what point does the left candidate win the election?  Why is it 
           possible for the blue candidate to win with less that 50% of the vote?
+        </ul>
         </span>
       </div>
     """
@@ -761,13 +792,15 @@ q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
         <span class='highlight red'>
           <span class='bold'>
-            Discussion Question: <br>
+            Discussion Questions: <br>
           </span>
         </span>  
         <span class='highlight grey'>
-            What do you notice? Can you find a set of parameters so that the 
+          <ul>
+            <li>What do you notice? Can you find a set of parameters so that the 
             left candidate loses by moving in either direction? Looking at this 
             graph, where are the fixed points and which of these are stable?
+          </ul>
         </span>
       </div>
     """
@@ -779,6 +812,7 @@ st.header("""III. Discontinuities""")
 
 st.markdown("""The political environment discontinuously impacts the optimal 
   strategy of the candidates.""")
+
 
 # add l infinite plot.
 
