@@ -367,22 +367,22 @@ line = alt.Chart(pd.DataFrame({'Vote Share': [0.5]})
                     color = alt.value(CENTRIST_GREY), 
                     strokeWidth = alt.value(4))
 
-point_df = pd.DataFrame([["Right Candidate",R,0.02]],
-                      columns = [" ","Candidate Position","Vote Share"])
-point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
-                    x=alt.X("Candidate Position",
-                            type = "quantitative"),
-                    y=alt.Y("Vote Share",
-                            type = "quantitative", ),
-                    color = alt.Color(" ",
-                                    scale = {"range": [RIGHT_RED_DARK]}),
-                    shape = alt.value("triangle"))
+# point_df = pd.DataFrame([["Right Candidate",R,0.02]],
+#                       columns = [" ","Candidate Position","Vote Share"])
+# point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
+#                     x=alt.X("Candidate Position",
+#                             type = "quantitative"),
+#                     y=alt.Y("Vote Share",
+#                             type = "quantitative", ),
+#                     color = alt.Color(" ",
+#                                     scale = {"range": [RIGHT_RED_DARK]}),
+#                     shape = alt.value("triangle"))
 
-chart = (line + chart + point).resolve_scale(
-    color='independent', strokeDash = "independent"
-)
+# # chart = (line + chart).resolve_scale(
+# #     color='independent', strokeDash = "independent"
+# # )
 
-st.altair_chart(chart, use_container_width=True)
+st.altair_chart(line + chart, use_container_width=True)
 
 st.markdown("""As soon as the left candidate crosses the dashed line, they have 
   more than 50% of the votes and therefore they have won the election.""")
