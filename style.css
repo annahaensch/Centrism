@@ -1,0 +1,24 @@
+.highlight {
+  border-radius: 0.4rem;
+  color: white;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: .3rem;
+  padding-bottom: .3rem;
+  margin-bottom: 1rem;
+}
+.bold {
+  font-weight: 700;
+}
+.blue {
+  background-color: #446B84;
+}
+.red {
+  background-color: #E58073;
+}
+.grey {
+  background-color: #E8E8E8;
+  color: black;
+  width: 100%;
+  display: table-cell;
+}
