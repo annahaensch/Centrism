@@ -13,9 +13,15 @@ import altair as alt
 from sklearn.mixture import GaussianMixture
 from scipy.integrate import quad
 
-LEFT_BLUE = "#446B84"
-RIGHT_RED = "#E58073"
+from load_css import local_css
+
+LEFT_BLUE = "#8a9dba" #"#446B84"
+RIGHT_RED = "#f59585" #"#E58073"
+RIGHT_RED_DARK = "#cc4e3e"
+LEFT_BLUE_DARK = "#224f6b"
 CENTRIST_GREY = "#E8E8E8"
+
+local_css("style.css")
 
 def get_gaussian_mixture_model(means, variances, weights):
   """ Initialize multimodal model with chosen parameters.
@@ -74,26 +80,36 @@ st.markdown("""We'll start by seeding a population with political beliefs on a
   subpopulations with their beliefs clustered around different means. 
  """)
 
-st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
- <p style="margin-left: 25px;">
-  Is this sort of distribution a reasonable one for the population of US voters.
-  </p>""", unsafe_allow_html=True)
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+          Is this sort of distribution a reasonable one for the population of US voters? 
+        </span>
+      </div>
+    """
 
-st.markdown(r"""Suppose we agree that it's reasonable and assume our population 
+st.markdown(q,unsafe_allow_html=True)
+
+st.markdown(r"""
+  Suppose we agree that it's reasonable and assume our population 
   has beliefs that are sampled from an mixture of $M$ Gaussians where the $m^{th}$ 
-  mode has mean $\mu_m$ and variance $\sigma_m^2$. To keep things simple, we 
-  will assume that mode choice follows a discrete uniform distribution and the 
+  mode has mean $\mu_m$, variance $\sigma_m^2$ and weight $\omega_m$. Then the
   probability of a voter holding belief $x$ in the $m^{th}$ mode is sampled as 
   """)
 
 st.latex(r'''
-    p(x\mid y = m)  \sim \mathcal{N}(\mu_m, \sigma^2_m).
+    p(x\mid y = m)  \sim \mathcal{N}(\mu_m, \sigma^2_m),
     ''')
 
-st.markdown("""Then the density of voters at position $x$ is given by """)
+st.markdown("""and the density of voters at position $x$ is given by """)
 
 st.latex(r'''
-    f(x)  = \frac{1}{M}\sum_{m=1}^M \frac{1}{\sigma_m\sqrt{2\pi}}e^{
+    f(x)  = \sum_{m=1}^M \omega_m\cdot \frac{1}{\sigma_m\sqrt{2\pi}}e^{
     -\frac{1}{2}\left(\frac{x - \mu_m}{\sigma_m}\right)^2}.
     ''')
 
@@ -262,14 +278,36 @@ chart_right= alt.Chart(chart_data_wide_right).mark_area().encode(
     strokeWidth = alt.value(4)
     )
 
+point_df = pd.DataFrame([["Left Candidate",L,0.02],["Right Candidate",R,0.02]],
+                      columns = [" ","Position","Density"])
+
+chart_position = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
+    x=alt.X("Position", type = "quantitative"),
+    y=alt.Y("Density", type = "quantitative"),
+    color=alt.Color(" ",
+            scale={"range": [LEFT_BLUE_DARK, RIGHT_RED_DARK]}),
+    shape = alt.value("triangle"),
+    )
 # Add scatter plot at left and right candidate positions.
 
-st.altair_chart(chart_left + chart_right, use_container_width=True)
+st.altair_chart(chart_left + chart_right + chart_position, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
- <p style="margin-left: 25px;">What are some of the difficulties in making 
- voting mandatory?  Do you know of any countries with mandatory voting?  
- Why do some contries have it while others do not?  </p>""", unsafe_allow_html=True)
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+          What are some of the difficulties in making 
+           voting mandatory?  Do you know of any countries with mandatory voting?  
+           Why do some contries have it while others do not?
+        </span>
+      </div>
+    """
+
+st.markdown(q, unsafe_allow_html=True)
 
 st.subheader("B. Dynamic Candidates")
 
@@ -298,12 +336,12 @@ for l in ell_positions:
 # Get chart data
 chart_data = pd.DataFrame()
 chart_data["Left"] = ell_positions
-chart_data["Left Candidate"] = left_shares
-chart_data["Right Candidate"] = right_shares
+chart_data["Left Share"] = left_shares
+chart_data["Right Share"] = right_shares
 chart_data_wide = pd.melt(chart_data.reset_index(), 
         id_vars=["Left"], 
-        value_vars = ["Left Candidate","Right Candidate"])
-chart_data_wide.rename(columns = {"variable":"Candidate",
+        value_vars = ["Left Share","Right Share"])
+chart_data_wide.rename(columns = {"variable":" ",
                                   "Left":"Candidate Position"}, inplace = True)
 
 # Make chart
@@ -314,26 +352,56 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     y=alt.Y("value", 
             type = "quantitative", 
             title = "Candidate vote share"),
-    color=alt.Color('Candidate',
+    color=alt.Color(" ",
             scale={"range": [LEFT_BLUE, RIGHT_RED]}),
-    strokeDash='Candidate',
+    strokeDash=" ",
     strokeWidth = alt.value(4)
     ).properties(
       title='Candidate Vote Share as A Function of Position'
     )
-line = alt.Chart(pd.DataFrame({'Vote Share': [0.5], "color":["white"]})
+
+
+line = alt.Chart(pd.DataFrame({'Vote Share': [0.5]})
                 ).mark_rule(strokeDash=[5, 10]).encode(
                     y='Vote Share',
-                    color = alt.value("white"))
-st.altair_chart(chart + line, use_container_width=True)
+                    color = alt.value(CENTRIST_GREY), 
+                    strokeWidth = alt.value(4))
+
+point_df = pd.DataFrame([["Right Candidate",R,0.02]],
+                      columns = [" ","Candidate Position","Vote Share"])
+point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
+                    x=alt.X("Candidate Position",
+                            type = "quantitative"),
+                    y=alt.Y("Vote Share",
+                            type = "quantitative", ),
+                    color = alt.Color(" ",
+                                    scale = {"range": [RIGHT_RED_DARK]}),
+                    shape = alt.value("triangle"))
+
+chart = (line + chart + point).resolve_scale(
+    color='independent', strokeDash = "independent"
+)
+
+st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""As soon as the left candidate crosses the dashed line, they have 
   more than 50% of the votes and therefore they have won the election.""")
 
-st.markdown("""<span style='background-color:#E58073'> <b>Discussion Question</b> </span>
- <p style="margin-left: 25px;">
-  Where does the left candidate have to be on the 
-  spectrum in order to win the election?</p>""", unsafe_allow_html=True)
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+          Where does the left candidate have to be on the 
+          spectrum in order to win the election?
+        </span>
+      </div>
+    """
+
+st.markdown(q, unsafe_allow_html=True)
 
 # TODO: show answer - (I dont' think this will work).
 
@@ -472,10 +540,22 @@ chart = alt.Chart(chart_data_wide).mark_bar().encode(
 
 st.altair_chart(chart, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> <b> Discussion Question</b></span>  
-  <p style="margin-left: 25px;">What do you notice?  Is there ever a way for the 
-  less eager candidate to win?</p>""", unsafe_allow_html=True)
 
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+          What do you notice?  Is there ever a way for the less eager candidate 
+          to win?
+        </span>
+      </div>
+    """
+
+st.markdown(q, unsafe_allow_html=True)
 
 ############## Section IV #######################
 st.subheader("III. When Voting is Not Mandatory")
@@ -599,11 +679,21 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     )
 st.altair_chart(chart, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> Discussion Question</span>  
-  <p style="margin-left: 25px;">At what point does the left candidate win the 
-  election?  Why is it possible for the blue candidate to win with less that 
-  50% of the vote?</p>""", 
-  unsafe_allow_html=True)
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+          At what point does the left candidate win the election?  Why is it 
+          possible for the blue candidate to win with less that 50% of the vote?
+        </span>
+      </div>
+    """
+
+st.markdown(q, unsafe_allow_html=True)
 
 st.markdown("""Next, we will look at how the share of votes changes as a 
   function of candidate position, with the introduction of voter loyalty.  We'll 
@@ -667,10 +757,22 @@ line = alt.Chart(pd.DataFrame({'Rate of change in vote share': [0.],
 
 st.altair_chart(chart + line, use_container_width=True)
 
-st.markdown("""<span style='background-color:#E58073'> Discussion Question</span>  
-  <p style="margin-left: 25px;">What do you notice? Can you find a set of 
-  parameters so that the left candidate loses by moving in either direction? Looking 
-  at this graph, where are the fixed points and which of these are stable?</p>""", unsafe_allow_html=True)
+q = """
+      <div style="margin-bottom: 10px; margin-left: 5px">
+        <span class='highlight red'>
+          <span class='bold'>
+            Discussion Question: <br>
+          </span>
+        </span>  
+        <span class='highlight grey'>
+            What do you notice? Can you find a set of parameters so that the 
+            left candidate loses by moving in either direction? Looking at this 
+            graph, where are the fixed points and which of these are stable?
+        </span>
+      </div>
+    """
+
+st.markdown(q, unsafe_allow_html=True)
 
 
 st.header("""III. Discontinuities""")
