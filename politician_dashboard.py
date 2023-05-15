@@ -194,7 +194,7 @@ st.header("II. When Voting is Mandatory")
 #################################################
 
 st.subheader("A. Static Candidates")
-st.markdown(r"""Let's simulate a simple election in which everybody votes.  Supppose 
+st.markdown(r"""Let's simulate a simple election in which everybody votes.  Suppose 
   that the left candidate, $L$, is in position $\ell$ and the right candidate, 
   $R$, is in position $r$.  The left candidate gets all of the votes 
   to their left and every vote up until the midway point between the $L$ and $R$.
@@ -210,7 +210,7 @@ st.markdown("""Using the slider below, choose your left and right candidate
   positions.  Based on the positions you choose, the vote shares will be shown 
   in the chart that follows.""")
 
-L, R = st.slider("",float(m), float(M), (-1.,1.8), step = 0.25)
+L, R = st.slider("",float(m), float(M), (-1.,1.75), step = 0.25)
 
 
 def pdf_integrand(x = df["Position"], model = model):
@@ -311,9 +311,8 @@ chart_position = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
 st.altair_chart(chart_left + chart_right + chart_position, use_container_width=True)
 
 st.markdown("""
-  If voting is mandatory, then everyone in the population shows up to vote, so 
-  it's reasonable to assume that every person will vote for the candidate whose
-  position is closest to their beliefs.
+  If voting is mandatory, then we assume everyone in the population shows up and votes 
+  for the candidate whose position is closest to their beliefs.
   """)
 # TODO: add some text about mandatory voting.
 
@@ -331,7 +330,7 @@ q = """
           the candidate positions?
           <li>What are some of the difficulties in making 
            voting mandatory?  Do you know of any countries with mandatory voting?  
-           Why do some contries have it while others do not?
+           Why do some countries have it while others do not?
           </ul>
         </span>
       </div>
@@ -372,20 +371,24 @@ chart_data_wide = pd.melt(chart_data.reset_index(),
         id_vars=["Left Position"], 
         value_vars = ["Left","Right"])
 chart_data_wide.rename(columns = {"variable":" ",
-                                  "Left Position":"Candidate Position"}, inplace = True)
+                                  "Left Position":"Candidate Position",
+                                  "value": "Proportion"}, inplace = True)
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_line().encode(
     x=alt.X("Candidate Position", 
             type="quantitative", 
             title="Left candidate position"),
-    y=alt.Y("value", 
+    y=alt.Y("Proportion", 
             type = "quantitative", 
             title = "Proportion of population"),
     color=alt.Color(" ",
             scale={"range": [LEFT_BLUE, RIGHT_RED]}),
     strokeDash=" ",
-    strokeWidth = alt.value(4)
+    strokeWidth = alt.value(4),
+    tooltip=[alt.Tooltip("Candidate Position:Q", format=",.2f"),
+            alt.Tooltip("Proportion:Q", format=",.2f"),
+            alt.Tooltip(" :N")]
     ).properties(
       title="""Proportion of Population Voting for Each Candidate as a Function of Left Candidate Position"""
     )
@@ -589,7 +592,7 @@ q = """
           is very opportunistic and right candidate is not?
           <li>Is there ever a way for the less eager candidate 
           to win?
-          <li> This model proposed here doesn't allow the candadates to cross 
+          <li> This model proposed here doesn't allow the candidates to cross 
           over each other.  What would happen if we loosened these restrictions?  
           Would our formulas still work? 
         </ul>
@@ -608,7 +611,7 @@ st.markdown("""In the United States voting is not mandatory. If a voter doesn't
   Therefore, it's not always in a candidate's best interest to be overly 
   opportunistic, since they might risk alienating voters on the far ends 
   of their parties.  To account for this, we'll include a measure of __voter 
-  loyalty__ into this model.  A high level of voter loyaly means that a voter is 
+  loyalty__ into this model.  A high level of voter loyalty means that a voter is 
   likely to stick with a candidate even as their position drifts.""")
 
 st.markdown(r"We'll call this quantity $\gamma$ and define a function ")
