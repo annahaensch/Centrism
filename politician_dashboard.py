@@ -210,7 +210,7 @@ st.markdown("""Using the slider below, choose your left and right candidate
   positions.  Based on the positions you choose, the vote shares will be shown 
   in the chart that follows.""")
 
-L, R = st.slider("",float(m), float(M), (-1.,1.75), step = 0.25)
+L, R = st.slider("",float(m), float(M), (-1.,2.), step = 0.25)
 
 
 def pdf_integrand(x = df["Position"], model = model):
@@ -468,10 +468,10 @@ st.markdown(r"""Using the sliders below, you can choose your $\alpha$ and
   $\beta$ values.  Remember, large values mean more opportunism.""")
 
 # Add an alpha slider
-alpha = st.slider(r"Choose your $\alpha$ value", 0.0, 2.0, (1.5))
+alpha = st.slider(r"Choose your $\alpha$ value", 0.0, 2.0, (1.0))
 
 # Add a beta slider
-beta = st.slider(r"Choose your $\beta$ value",0.0, 2.0, (1.0))
+beta = st.slider(r"Choose your $\beta$ value",0.0, 2.0, (0.2))
 
 def get_intersection(a1, a2, b1, b2):
   """ Compute intersection of two lines.
@@ -638,7 +638,7 @@ st.markdown(r"""Using the slider below, you can choose your $\gamma$ values. Rem
   with the candidate, even as their position moves.""")
 
 # Add a gamma slider
-gamma = st.slider(r'Choose your $\gamma$ value',0.0, 10.0, (5.0))
+gamma = st.slider(r'Choose your $\gamma$ value',0.0, 5.0, (3.0))
 
 def g_func(z, gamma):
   return np.exp(-z/gamma)
@@ -805,7 +805,7 @@ line = alt.Chart(pd.DataFrame({'Rate of change in vote share': [0.],
                                               "color":["white"]})
                 ).mark_rule(strokeDash=[5, 10]).encode(
                     y='Rate of change in vote share',
-                    color = alt.value("white"))
+                    color = alt.value("black"))
 
 st.altair_chart(chart + line, use_container_width=True)
 
@@ -831,11 +831,35 @@ st.markdown(q, unsafe_allow_html=True)
 
 st.header("""III. Discontinuities""")
 
-st.markdown("""The political environment discontinuously impacts the optimal 
-  strategy of the candidates.""")
+st.markdown(r"""The political environment discontinuously impacts the optimal 
+  strategy of the candidates.  In the chart below we example the final position 
+  of the left-hand candidate as a function of $\gamma$ value.  To save computational
+  costs, this is a static graph, and we assume that $\ell = -1$, $r = 2$, $\alpha = 1$ 
+  and $\beta = 0.2$.""")
 
+df = pd.read_csv("final_L_position.csv", index_col = 0)
+chart_data_wide = pd.melt(df, 
+                          id_vars=["gamma"], 
+                          value_vars = ["Final L Position"])
+chart_data_wide.rename(columns = {"value":"Final left candidate position",
+                                  "gamma":"Gamma"}, 
+                        inplace = True)
 
-# add l infinite plot.
+# Make chart
+chart = alt.Chart(chart_data_wide).mark_point().encode(
+    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.30, 2.45))),
+    y="Final left candidate position:Q",
+    color=alt.value(LEFT_BLUE),
+    strokeWidth = alt.value(4),
+    tooltip=[alt.Tooltip("Final left candidate position:Q", format=",.2f"),
+            alt.Tooltip("Gamma:Q", format=",.2f")]
+    ).properties(
+      title="Left Candidate's Final Position as a Function of Gamma" 
+            )
+st.altair_chart(chart, use_container_width=True)
+
+st.markdown("""If you want to try to generate this graph with different values, 
+  you can check out the accompanying Python code in the Github repository.""")
 
 st.markdown("""You can learn more about the mathematics behind this app in this 
   paper: Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. 
