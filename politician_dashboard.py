@@ -119,10 +119,28 @@ st.markdown("""In the boxes below enter the means and variances that you'd like
   to use for each of the Gaussian modes.""")
 
 # Input means and variances as strings
+option = st.selectbox(
+        '''How many modes would you like your population to have?  
+        This is the _M_ in the equations above.  A set of viable means,
+        variances, and weights will be provided to you below, but you can
+        edit them if you wish.''',
+        ('1', '2', '3','4','5'),
+        index = 1)
+
+means_dict = {1: "0.0",
+              2: "-1.0, 1.0",
+              3: "-2.0, 0.0, 2.0",
+              4: "-3.0, -1.0, 1.0, 3.0",
+              5: "-4.0, -2.0, 0.0, 2.0, 4.0"
+              }
+means_value = means_dict[int(option)]
+variances_value = ", ".join([str(0.5) for i in range(int(option))])
+weights_value = ", ".join([str(np.around(1/int(option), decimals = 2)) for i in range(int(option))])
+
 c1, c2, c3 = st.columns(3)
-means = c1.text_input(label = "means", value = "-1,1")
-variances = c2.text_input(label = "variances", value = ".5, .5")
-weights = c3.text_input(label = "weights", value = ".5, .5")
+means = c1.text_input(label = "means", value = means_value)
+variances = c2.text_input(label = "variances", value = variances_value)
+weights = c3.text_input(label = "weights", value = weights_value)
 
 # Get means and variances as floats
 means = np.array([float(m.strip(" ")) for m in means.split(",")])
