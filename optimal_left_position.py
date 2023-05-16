@@ -42,7 +42,7 @@ def main(L, R, alpha, beta):
     df["Density"] = pdf(x,model)
 
     # Select gamma for function input.
-    gamma = np.linspace(2.3, 2.45, 15)
+    gamma = np.linspace(2.5, 3.5, 20)
     final_ell_positions = []
     ell_dict = {}
     r_dict = {}
