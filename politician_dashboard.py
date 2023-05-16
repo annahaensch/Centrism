@@ -653,10 +653,10 @@ st.markdown(r"""The political environment discontinuously impacts the optimal
   and $\beta = 0.2$.""")
 
 # Read in data for left-candidate final position.
-df = pd.read_csv("final_L_position.csv", index_col = 0)
+df = pd.read_csv("discontinuity.csv", index_col = 0)
 chart_data_wide = pd.melt(df, 
                           id_vars=["gamma"], 
-                          value_vars = ["Final L Position"])
+                          value_vars = ["final_left_position"])
 chart_data_wide.rename(columns = {"value":"Final left candidate position",
                                   "gamma":"Gamma"}, 
                         inplace = True)
@@ -677,7 +677,8 @@ chart = alt.Chart(chart_data_wide).mark_point().encode(
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""If you want to try to generate this graph with different values, 
-  you can check out the accompanying Python code in the Github repository.""")
+  you can check out the accompanying script `optimal_left_position.py` in the 
+  Github repository.""")
 
 st.markdown("""You can learn more about the mathematics behind this app in this 
   paper: Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. 
