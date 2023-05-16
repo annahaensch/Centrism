@@ -663,7 +663,7 @@ chart_data_wide.rename(columns = {"value":"Final left candidate position",
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_point().encode(
-    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.30, 2.45))),
+    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.5, 3.5))),
     y="Final left candidate position:Q",
     color=alt.value(LEFT_BLUE),
     strokeWidth = alt.value(4),
