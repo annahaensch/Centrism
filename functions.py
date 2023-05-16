@@ -1,5 +1,6 @@
 """ Functions for politician_dashboard.py Streamlit App
 """
+import math
 import numpy as np
 import pandas as pd
 

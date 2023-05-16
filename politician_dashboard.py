@@ -3,19 +3,11 @@
 This code launches a streamlit app 
 
 """
-import math
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import streamlit as st
 import altair as alt
 
-
-
-
 from load_css import local_css
 from functions import *
-
 
 
 local_css("style.css")
