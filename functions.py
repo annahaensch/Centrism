@@ -192,3 +192,29 @@ def right_derivative(x,left_position, gamma, model, h = 0.001):
   forward_sum = right_share_with_g(left_position, x + h, gamma, model)
   backward_sum = right_share_with_g(left_position, x - h, gamma, model)
   return (forward_sum - backward_sum) / (2*h)
+
+def coalescing_candidates_with_g(left_position, right_position, model, gamma, alpha, beta):
+  """Simulate colaescing of candidate positions with voter tolerance."""
+  ell_positions = []
+  r_positions = []
+  y = None
+  for i in range(100):
+    left_delta = left_derivative(left_position, right_position, gamma, model)
+    right_delta = right_derivative(right_position, left_position, gamma, model)
+    left_position += alpha*left_delta
+    right_position += beta*right_delta
+    if left_position < right_position:
+      ell_positions.append(left_position)
+      r_positions.append(right_position) 
+    else:
+      x, y = get_intersection(ell_positions[-1], left_position, r_positions[-1], right_position)
+      ell_positions.append(y)
+      r_positions.append(y)
+      break
+
+  if y:
+    for j in range(i,100):
+      ell_positions.append(y)
+      r_positions.append(y)
+      
+  return ell_positions, r_positions
