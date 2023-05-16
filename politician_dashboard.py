@@ -38,11 +38,9 @@ st.markdown("""We'll start by seeding a population with political beliefs on a
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Question: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
           Is this sort of distribution a reasonable one for the population of US voters? 
         </span>
@@ -250,11 +248,9 @@ st.markdown("""
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
           <ul>
           <li> How is the border between the left candidate votes and right 
@@ -345,11 +341,9 @@ st.markdown("""As soon as the left candidate crosses the dashed line, they have
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
         <ul>
           <li>Why does proportion of the population voting for the left candidate 
@@ -458,11 +452,9 @@ st.altair_chart(chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
         <ul>
           <li>What happens to the equilibrium position when the left candidate 
@@ -566,11 +558,9 @@ st.altair_chart(chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
         <ul>
           <li>Why does proportion of the population voting for the left candidate 
@@ -625,7 +615,10 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     y=alt.Y("Rate of change in vote share", 
             type = "quantitative"),
     color=alt.value(LEFT_BLUE),
-    strokeWidth = alt.value(4)).properties(
+    strokeWidth = alt.value(4),
+    tooltip=[alt.Tooltip("Left candidate position:Q", format=",.2f"),
+            alt.Tooltip("Rate of change in vote share:Q", format=",.2f")
+            ]).properties(
       title='Rate of Change in Left Candidate Vote Share as A Function of Position'
             )
 
@@ -643,11 +636,9 @@ st.altair_chart(line + chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
           <ul>
             <li>What do you notice? Can you find a set of parameters so that the 
@@ -689,7 +680,7 @@ chart = alt.Chart(chart_data_wide).mark_point().encode(
     ).properties(
       title="Left Candidate's Final Position as a Function of Gamma" 
             )
-    
+
 # Display chart
 st.altair_chart(chart, use_container_width=True)
 
