@@ -3,67 +3,15 @@
 This code launches a streamlit app 
 
 """
-import math
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import streamlit as st
 import altair as alt
 
-from sklearn.mixture import GaussianMixture
-from scipy.integrate import quad
-
 from load_css import local_css
+from functions import *
 
-LEFT_BLUE = "#8a9dba" #"#446B84"
-RIGHT_RED = "#f59585" #"#E58073"
-RIGHT_RED_DARK = "#cc4e3e"
-LEFT_BLUE_DARK = "#224f6b"
-CENTRIST_GREY = "#E8E8E8"
 
 local_css("style.css")
 
-def get_gaussian_mixture_model(means, variances, weights):
-  """ Initialize multimodal model with chosen parameters.
-
-  Inputs: 
-    means: (array) float values for component means.
-    variances: (array) float values for component variances
-
-  Returns: 
-    Fit GaussianMixtureModel.
-  """
-  n_components = means.shape[0]
-  gmm = GaussianMixture(n_components=n_components, random_state=0)
-  gmm.means_ = np.array([[m] for m in means])
-  gmm.covariances_ = np.array([[[s]] for s in variances])
-  gmm.weights_ = np.array([s for s in weights])
-  gmm.precision_ = np.zeros(gmm.covariances_.shape)
-  gmm.precisions_cholesky_ = np.zeros(gmm.covariances_.shape)
-  for i in range(gmm.precision_.shape[0]):
-    gmm.precision_[i] = np.linalg.inv(gmm.covariances_[i])
-    gmm.precisions_cholesky_[i] = np.linalg.cholesky(gmm.precision_[i]) ** 2
-
-  return gmm
-
-def pdf(x, model):
-  """compute probability density function.
-
-  Inputs: 
-    x: (array) positions from left to right.
-    model: (GaussiaMixtureModel) fit model.
-
-  Returns:
-    Probability density function for model evaluated at x.
-  """
-  if type(x) == pd.Series:
-    x = x.values.reshape(-1,1)
-  elif type(x) == np.ndarray:
-    x = x.reshape(-1,1)
-  elif type(x) == list:
-    x = np.array(x).reshape(-1,1)
-
-  return np.exp(model.score_samples(x))
 
 st.title("ODEs and Mandatory Voting")
 
@@ -82,11 +30,9 @@ st.markdown("""We'll start by seeding a population with political beliefs on a
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Question: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
           Is this sort of distribution a reasonable one for the population of US voters? 
         </span>
@@ -133,27 +79,27 @@ means_dict = {1: "0.0",
               4: "-3.0, -1.0, 1.0, 3.0",
               5: "-4.0, -2.0, 0.0, 2.0, 4.0"
               }
+
+# Set defaults values for means, weights, and variances
 means_value = means_dict[int(option)]
 variances_value = ", ".join([str(0.5) for i in range(int(option))])
-weights_value = ", ".join([str(np.around(1/int(option), decimals = 2)) for i in range(int(option))])
+weights_value = ", ".join([str(np.around(1/int(option), decimals = 2)
+                                ) for i in range(int(option))])
 
+# Get means, weights, and variances as text input
 c1, c2, c3 = st.columns(3)
 means = c1.text_input(label = "means", value = means_value)
 variances = c2.text_input(label = "variances", value = variances_value)
 weights = c3.text_input(label = "weights", value = weights_value)
 
-# Get means and variances as floats
+# Cast means, weights, and variances to floats
 means = np.array([float(m.strip(" ")) for m in means.split(",")])
 variances = np.array([float(s.strip(" ")) for s in variances.split(",")])
 weights = np.array([float(w.strip(" ")) for w in weights.split(",")])
 weights = weights/ np.sum(weights)
 
-msg = """You have to have the same number of means and variances.  
-  One for each mode."""
+msg = f"You must select {option} each of means, weights and variances."
 assert len(means) == len(variances), msg
-
-msg = """You have to have the same number of means and weights.  
-  One for each mode."""
 assert len(means) == len(weights), msg
 
 # Compute relevant linspace for left-right spectrum
@@ -186,6 +132,7 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     strokeWidth = alt.value(4)
     ).properties(title='Density of Beliefs on the Left-Right Spectrum')
 
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 
@@ -210,40 +157,12 @@ st.markdown("""Using the slider below, choose your left and right candidate
   positions.  Based on the positions you choose, the vote shares will be shown 
   in the chart that follows.""")
 
+# Get left and right candidate position.
 L, R = st.slider("",float(m), float(M), (-1.,2.), step = 0.25)
 
-
-def pdf_integrand(x = df["Position"], model = model):
-  return pdf([x], model)
-
-def get_left_share(left_position, right_position, model):
-  """Compute left candidate vote share."""
-  lower = -np.inf
-  upper = (left_position + right_position)/2
-  return quad(pdf_integrand, lower, upper, args=(model))[0]
-
-def get_right_share(left_position, right_position, model):
-  """Compute right candidate vote share."""
-  lower = (left_position + right_position)/2
-  upper = np.inf
-  return quad(pdf_integrand, lower, upper, args=(model))[0]
-
-def get_plot_colors(left_share, right_share):
-  """ Get plot colors based on winner."""
-  left_color = CENTRIST_GREY
-  right_color = CENTRIST_GREY
-
-  if left_share > right_share:
-    left_color = LEFT_BLUE
-    right_color = CENTRIST_GREY
-
-  if left_share < right_share:
-    left_color = CENTRIST_GREY
-    right_color = RIGHT_RED
-  return left_color, right_color
-
-left_share = get_left_share(left_position = L, right_position = R, model = model)
-right_share = get_right_share(left_position = L, right_position = R, model = model)
+# Compute left and right candidate population share
+left_share = get_left_share(df = df, left_position = L, right_position = R, model = model)
+right_share = get_right_share(df = df, left_position = L, right_position = R, model = model)
 left_color, right_color = get_plot_colors(left_share, right_share)
 
 # Get chart data
@@ -261,12 +180,14 @@ chart = alt.Chart(chart_data_wide).mark_bar().encode(
                 alt.value(right_color))
           ).properties(title='Vote Share For Each Candidate')
 
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""To see this more clearly, we can look at the area under the curve 
   of the electorate density function for our distribution. Notice how the 
   winning candidate takes more than half of the area under the curve.""")
 
+# Compute midpoint and assign voter ranges to candidates
 midpoint = (L + R)/2
 df_left = df[df["Position"] <= midpoint]
 df_right = df[df["Position"] > midpoint]
@@ -289,6 +210,7 @@ chart_left= alt.Chart(chart_data_wide_left).mark_area().encode(
     strokeWidth = alt.value(4)
     ).properties(title='Who Wins?')
 
+# Display chart
 chart_right= alt.Chart(chart_data_wide_right).mark_area().encode(
     x=alt.X("Position", type = "quantitative"),
     y=alt.Y("Density", type = "quantitative"),
@@ -296,19 +218,19 @@ chart_right= alt.Chart(chart_data_wide_right).mark_area().encode(
     strokeWidth = alt.value(4)
     )
 
+# Add candidate markers to plot
 point_df = pd.DataFrame([["Left Candidate",L,0.02],["Right Candidate",R,0.02]],
                       columns = [" ","Position","Density"])
 
-chart_position = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
+chart_point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
     x=alt.X("Position", type = "quantitative"),
     y=alt.Y("Density", type = "quantitative"),
     color=alt.Color(" ",
             scale={"range": [LEFT_BLUE_DARK, RIGHT_RED_DARK]}),
     shape = alt.value("triangle"),
     )
-# Add scatter plot at left and right candidate positions.
 
-st.altair_chart(chart_left + chart_right + chart_position, use_container_width=True)
+st.altair_chart(chart_left + chart_right + chart_point, use_container_width=True)
 
 st.markdown("""
   If voting is mandatory, then we assume everyone in the population shows up and votes 
@@ -318,11 +240,9 @@ st.markdown("""
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
           <ul>
           <li> How is the border between the left candidate votes and right 
@@ -349,15 +269,18 @@ text_3 = r"""then it looks like it's always in the best interest of the left
 
 st.markdown(text_1 + text_2 + text_3)
 
+# Compute vote shares with changing left candidate position
 ell_positions = np.linspace(m,R,100)
 left_shares = []
 right_shares = []
 for l in ell_positions:
-  left_share = get_left_share(left_position = l, 
+  left_share = get_left_share(df = df,
+                              left_position = l, 
                               right_position = R, 
                               model = model)
   left_shares.append(left_share)
-  right_share = get_right_share(left_position = l, 
+  right_share = get_right_share(df = df,
+                                left_position = l, 
                                 right_position = R, 
                                 model = model)
   right_shares.append(right_share)
@@ -394,27 +317,15 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     )
 
 
+# Add dashed line at 0.5
 line = alt.Chart(pd.DataFrame({'Vote Share': [0.5]})
                 ).mark_rule(strokeDash=[5, 10]).encode(
                     y='Vote Share',
-                    color = alt.value(CENTRIST_GREY), 
-                    strokeWidth = alt.value(4))
+                    color = alt.value('black'), 
+                    strokeWidth = alt.value(2),
+                    tooltip=alt.value(None))
 
-# point_df = pd.DataFrame([["Right Candidate",R,0.02]],
-#                       columns = [" ","Candidate Position","Vote Share"])
-# point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
-#                     x=alt.X("Candidate Position",
-#                             type = "quantitative"),
-#                     y=alt.Y("Vote Share",
-#                             type = "quantitative", ),
-#                     color = alt.Color(" ",
-#                                     scale = {"range": [RIGHT_RED_DARK]}),
-#                     shape = alt.value("triangle"))
-
-# # chart = (line + chart).resolve_scale(
-# #     color='independent', strokeDash = "independent"
-# # )
-
+# Display chart
 st.altair_chart(line + chart, use_container_width=True)
 
 st.markdown("""As soon as the left candidate crosses the dashed line, they have 
@@ -422,11 +333,9 @@ st.markdown("""As soon as the left candidate crosses the dashed line, they have
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
         <ul>
           <li>Why does proportion of the population voting for the left candidate 
@@ -440,12 +349,6 @@ q = """
     """
 
 st.markdown(q, unsafe_allow_html=True)
-
-# TODO: show answer - (I dont' think this will work).
-
-# ############## Section III #######################
-# st.subheader("III. Opportunistic Candidates")
-# ##################################################
 
 st.markdown(r"""From the previous discussion we've seen that candidates might want 
   to change their position on the political spectrum in order to get more votes. 
@@ -467,62 +370,13 @@ st.latex(r'''
 st.markdown(r"""Using the sliders below, you can choose your $\alpha$ and 
   $\beta$ values.  Remember, large values mean more opportunism.""")
 
-# Add an alpha slider
+# Get alpha value from slider
 alpha = st.slider(r"Choose your $\alpha$ value", 0.0, 2.0, (1.0))
 
-# Add a beta slider
+# Get beta value from slider
 beta = st.slider(r"Choose your $\beta$ value",0.0, 2.0, (0.2))
 
-def get_intersection(a1, a2, b1, b2):
-  """ Compute intersection of two lines.
-          y = (a2 - a1)x + a1
-          y = (b2 - b1)x + b1
-  """
-  x = (a1 - b1) /  ((b2 - b1) - (a2 - a1))
-  y = ((a2 - a1) * x) + a1
-  return x,y
-
-def coalescing_candidates(left_position, right_position, model, alpha = 1, 
-                      beta = .5):
-  """Simulate colaescing of candidate positions.
-
-  Inputs: 
-    left_position: (float) position of left candidate.
-    right_position: (float) position of right candidate.
-    model: (GaussianMixtureModel) fit instance.
-    alpha: (float) left candidate eagerness.
-    beta: (float) right candidate eagerness.
-
-  Returns: 
-    Left and right candidate positions over time as the move according to 
-    steepest ascent.
-  """
-  ell_positions = []
-  r_positions = []
-  y = None
-  while left_position < right_position:
-    delta = pdf(x = [(left_position + right_position)/2], model = model)[0]
-    left_position += (alpha/2)*delta
-    right_position += (-beta/2)*delta
-    if left_position < right_position:
-      ell_positions.append(left_position)
-      r_positions.append(right_position) 
-    else:
-      x, y = get_intersection(a1 = ell_positions[-1], 
-                              a2 = left_position, 
-                              b1 = r_positions[-1], 
-                              b2 = right_position)
-      ell_positions.append(y)
-      r_positions.append(y)
-
-  if y:
-    for i in range(10):
-        ell_positions.append(y)
-        r_positions.append(y)
-
-  return ell_positions, r_positions
-
-
+# Compute left and right candidate positions as candidates move
 ell_positions, r_positions = coalescing_candidates(left_position = L, 
                                                   right_position = R, 
                                                   model = model, 
@@ -543,20 +397,28 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     y=alt.Y("value", type = "quantitative", title = "Candidate position"),
     color=alt.Color(" ",scale={"range": [LEFT_BLUE, RIGHT_RED]}),
     strokeDash=" ",
-    strokeWidth = alt.value(4)
+    strokeWidth = alt.value(4),
+    tooltip=[alt.Tooltip("index:Q", format=",.2f"),
+            alt.Tooltip("value:Q", format=",.2f"),
+            alt.Tooltip(" :N")]
     ).properties(
         title='Candidates Moving According to Steepest Ascent'
     )
+
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""When candidates move according to steepest ascent they will 
   eventually meet as some collision point.  In the plot below we show the votes
   share for each candidate at this point.""")
 
-left_share = get_left_share(left_position = ell_positions[-1], 
+# Get proportion voting for each candidate at time of collision
+left_share = get_left_share(df = df, 
+                          left_position = ell_positions[-1], 
                           right_position = r_positions[-1], 
                           model = model)
-right_share = get_right_share(left_position = ell_positions[-1], 
+right_share = get_right_share(df = df,
+                          left_position = ell_positions[-1], 
                           right_position = r_positions[-1], 
                           model = model)
 left_color, right_color = get_plot_colors(left_share, right_share)
@@ -576,16 +438,15 @@ chart = alt.Chart(chart_data_wide).mark_bar().encode(
                 alt.value(right_color))
           ).properties(title='Proportion of Population Voting For Each Candidate')
 
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
         <ul>
           <li>What happens to the equilibrium position when the left candidate 
@@ -634,54 +495,15 @@ st.latex(r'''
   g(\mid r - x\mid ) \, \, dx.
   ''')
 
-st.markdown(r"""Using the slider below, you can choose your $\gamma$ values. Remember, a greater value of $\gamma$, means the voter is more likely to stick 
+st.markdown(r"""Using the slider below, you can choose your $\gamma$ values. 
+  Remember, a greater value of $\gamma$, means the voter is more likely to stick 
   with the candidate, even as their position moves.""")
 
-# Add a gamma slider
+# Get gamma value from slider
 gamma = st.slider(r'Choose your $\gamma$ value',0.0, 5.0, (3.0))
 
-def g_func(z, gamma):
-  return np.exp(-z/gamma)
 
-def left_integrand(x, left_position, gamma, model):
-    x = np.array([x])
-    f = pdf(x, model = model)
-    g = g_func(np.abs(left_position - x), gamma)
-    return f * g
-
-def right_integrand(x, right_position, gamma, model):
-    x = np.array([x])
-    f = pdf(x, model = model)
-    g = g_func(np.abs(right_position - x), gamma)
-    return f * g
-
-def left_integral(left_position, right_position, gamma, model):
-  """ Compute numerical integral for left candidate share."""
-  lower = -np.inf
-  upper = (left_position + right_position)/2
-  I = quad(left_integrand, lower, upper, args=(left_position, gamma, model))
-  return I[0]
-
-def right_integral(left_position, right_position, gamma, model):
-  """ Compute numerical integral for right candidate share."""
-  lower = (left_position + right_position)/2
-  upper = np.inf
-  I = quad(right_integrand, lower, upper, args=(right_position, gamma, model))
-  return I[0]
-
-def left_share_with_g(left_position, right_position, gamma, model):
-  """Compute left candidate vote share."""
-  if left_position > right_position: 
-    raise ValueError("Left candidate must be to left of right candidate.")
-  return left_integral(left_position, right_position, gamma, model)
-
-def right_share_with_g(left_position, right_position, gamma, model):
-  """Compute left candidate vote share."""
-  if left_position > right_position: 
-    raise ValueError("Left candidate must be to left of right candidate.")
-  return right_integral(left_position, right_position, gamma, model)
-
-
+# Compute proportion voting for each candidate with voter loyalty
 ell_positions = np.linspace(m,R, 100)
 left_shares = []
 right_shares = []
@@ -722,15 +544,15 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     ).properties(
         title='Proportion of Population Voting for Each Candidate as A Function of Position with Voter Loyalty'
     )
+
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
-          </span>
-        </span>  
+          </span> 
         <span class='highlight grey'>
         <ul>
           <li>Why does proportion of the population voting for the left candidate 
@@ -760,18 +582,7 @@ st.latex(r'''
 
 st.markdown("""using the symmetric difference quotient.""")
 
-def left_derivative(x,right_position, gamma, model, h = 0.001):
-  """Compute numerical derivative for left candidate change."""
-  forward_sum = left_share_with_g(x + h, right_position, gamma, model)
-  backward_sum = left_share_with_g(x - h, right_position, gamma, model)
-  return (forward_sum - backward_sum) / (2*h)
-
-def right_derivative(x,left_position, gamma, model, h = 0.001):
-  """Compute numerical derivative for right candidate change."""
-  forward_sum = right_share_with_g(left_position, x + h, gamma, model)
-  backward_sum = right_share_with_g(left_position, x - h, gamma, model)
-  return (forward_sum - backward_sum) / (2*h)
-
+# Compute change in vote share as a funciton of loyalty
 
 ell_positions = np.linspace(m,R -.001, 100)
 left_derivatives = []
@@ -796,26 +607,30 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     y=alt.Y("Rate of change in vote share", 
             type = "quantitative"),
     color=alt.value(LEFT_BLUE),
-    strokeWidth = alt.value(4)).properties(
+    strokeWidth = alt.value(4),
+    tooltip=[alt.Tooltip("Left candidate position:Q", format=",.2f"),
+            alt.Tooltip("Rate of change in vote share:Q", format=",.2f")
+            ]).properties(
       title='Rate of Change in Left Candidate Vote Share as A Function of Position'
             )
 
-
+# Add line at 0.
 line = alt.Chart(pd.DataFrame({'Rate of change in vote share': [0.], 
                                               "color":["white"]})
                 ).mark_rule(strokeDash=[5, 10]).encode(
                     y='Rate of change in vote share',
-                    color = alt.value("black"))
+                    color = alt.value("black"),
+                    strokeWidth = alt.value(2),
+                    tooltip=alt.value(None))
 
-st.altair_chart(chart + line, use_container_width=True)
+# Display chart
+st.altair_chart(line + chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
-        <span class='highlight red'>
           <span class='bold'>
             Discussion Questions: <br>
           </span>
-        </span>  
         <span class='highlight grey'>
           <ul>
             <li>What do you notice? Can you find a set of parameters so that the 
@@ -837,17 +652,18 @@ st.markdown(r"""The political environment discontinuously impacts the optimal
   costs, this is a static graph, and we assume that $\ell = -1$, $r = 2$, $\alpha = 1$ 
   and $\beta = 0.2$.""")
 
-df = pd.read_csv("final_L_position.csv", index_col = 0)
+# Read in data for left-candidate final position.
+df = pd.read_csv("discontinuity.csv", index_col = 0)
 chart_data_wide = pd.melt(df, 
                           id_vars=["gamma"], 
-                          value_vars = ["Final L Position"])
+                          value_vars = ["final_left_position"])
 chart_data_wide.rename(columns = {"value":"Final left candidate position",
                                   "gamma":"Gamma"}, 
                         inplace = True)
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_point().encode(
-    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.30, 2.45))),
+    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.5, 3.5))),
     y="Final left candidate position:Q",
     color=alt.value(LEFT_BLUE),
     strokeWidth = alt.value(4),
@@ -856,10 +672,13 @@ chart = alt.Chart(chart_data_wide).mark_point().encode(
     ).properties(
       title="Left Candidate's Final Position as a Function of Gamma" 
             )
+
+# Display chart
 st.altair_chart(chart, use_container_width=True)
 
 st.markdown("""If you want to try to generate this graph with different values, 
-  you can check out the accompanying Python code in the Github repository.""")
+  you can check out the accompanying script `optimal_left_position.py` in the 
+  Github repository.""")
 
 st.markdown("""You can learn more about the mathematics behind this app in this 
   paper: Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. 
