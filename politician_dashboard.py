@@ -18,7 +18,7 @@ st.title("ODEs and Mandatory Voting")
 st.markdown("""Mandatory voting has been adopted by over 20 of the world’s 
             democracies, including Brazil and Australia, and has been discussed 
             in the United States as well.  In this web app we present some tools
-            from ODE's and mathematical modeling to help understand its effects. 
+            from ODEs and mathematical modeling to help understand its effects. 
             For a population with static beliefs, we'll explore how candidates 
             might adjust their position to maximize their vote share.  We'll 
             also explore how manditory voting might change a candidate's optimal 
