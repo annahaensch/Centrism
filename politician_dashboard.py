@@ -260,14 +260,9 @@ q = """
             Discussion Questions: <br>
           </span>
         <span class='highlight grey'>
-          <ul>
-          <li> How is the border between the left candidate votes and right 
-          candidate votes determined and how would you express it in terms of 
-          the candidate positions?
-          <li>What are some of the difficulties in making 
-           voting mandatory?  Do you know of any countries with mandatory voting?  
-           Why do some countries have it while others do not?
-          </ul>
+          This model is making an assumption about what happens when
+          a country adopts a mandatory voting policy. Please explain this 
+          assumption in your own words and discuss possible violations.
         </span>
       </div>
     """
@@ -465,10 +460,9 @@ q = """
           </span> 
         <span class='highlight grey'>
         <ul>
-          <li>What happens to the equilibrium position when the left candidate 
-          is very opportunistic and right candidate is not?
-          <li>Is there ever a way for the less eager candidate 
-          to win?
+          <li>What happens to the position at which the two candidates meet
+          when the left candidate is very opportunistic and right candidate is not?
+          <li>Is there ever a way for the less eager candidate to win?
           <li> This model proposed here doesn't allow the candidates to cross 
           over each other.  What would happen if we loosened these restrictions?  
           Would our formulas still work? 
@@ -571,13 +565,11 @@ q = """
           </span> 
         <span class='highlight grey'>
         <ul>
-          <li>Why does proportion of the population voting for the left candidate 
-          get so close to 1, but never quite reach it? 
-          <li>Do the proportions always sum to 1? Why or why not?
-          <li>Where does the left candidate have to be on the 
-          spectrum in order to win the election?
-          <li>At what point does the left candidate win the election?  Why is it 
-          possible for the blue candidate to win with less that 50% of the vote?
+          <li>Do the proportions in the graph above always sum to 1? 
+          <li>If the right candidate starts at 1.75, where does the left candidate
+          have to be on the spectrum in order to win the election? Why?
+          <li>Why is it possible for the left candidate to win with less that
+              50% of the vote?
         </ul>
         </span>
       </div>
@@ -648,11 +640,9 @@ q = """
             Discussion Questions: <br>
           </span>
         <span class='highlight grey'>
-          <ul>
-            <li>What do you notice? Can you find a set of parameters so that the 
+            What do you notice? Can you find a set of parameters so that the 
             left candidate loses by moving in either direction? Looking at this 
             graph, where are the fixed points and which of these are stable?
-          </ul>
         </span>
       </div>
     """
@@ -666,8 +656,9 @@ st.markdown(r"""The political environment discontinuously impacts the optimal
   strategy of the candidates.  In the chart below we example the final position 
   of the left-hand candidate as a function of $\gamma$ value.  To save computational
   costs, this is a static graph, and we assume that $\ell = -1$, $r = 2$, $\alpha = 1$ 
-  and $\beta = 0.2$.  We're assuming a static underlying bimodal population with 
-  equally weighted centers at -1 and 1 with variance 0.5.""")
+  and $\beta = 0$.  This means the left candidate is moving to optimize their position, 
+  and the right candidate is staying fixed. We're assuming a static underlying bimodal 
+  population with equally weighted centers at -1 and 1 with variance 0.5.""")
 
 # Read in data for left-candidate final position.
 df = pd.read_csv("discontinuity.csv", index_col = 0)
@@ -680,7 +671,7 @@ chart_data_wide.rename(columns = {"value":"Final left candidate position",
 
 # Make chart
 chart = alt.Chart(chart_data_wide).mark_point().encode(
-    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(2.5, 3.5))),
+    x = alt.X("Gamma:Q", scale = alt.Scale(domain=(1.0, 2.0))),
     y="Final left candidate position:Q",
     color=alt.value(LEFT_BLUE),
     strokeWidth = alt.value(4),
