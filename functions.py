@@ -133,6 +133,9 @@ def coalescing_candidates(left_position, right_position, model, alpha = 1,
       ell_positions.append(y)
       r_positions.append(y)
 
+    if len(ell_positions) == 50:
+      break
+
   if y:
     for i in range(10):
         ell_positions.append(y)
