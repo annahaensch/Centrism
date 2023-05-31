@@ -15,7 +15,23 @@ local_css("style.css")
 
 st.title("ODEs and Mandatory Voting")
 
-st.markdown("TODO: Add some text about reading the paper...introduce ideas.")
+st.markdown("""Mandatory voting has been adopted by over 20 of the world’s 
+            democracies, including Brazil and Australia, and has been discussed 
+            in the United States as well.  In this web app we present some tools
+            from ODE's and mathematical modeling to help understand its effects. 
+            For a population with static beliefs, we'll explore how candidates 
+            might adjust their position to maximize their vote share.  We'll 
+            also explore how manditory voting might change a candidate's optimal 
+            strategy.""")
+
+st.markdown("""This web app is exists as an accompaniment to the paper [_ODEs and 
+            Mandatory Voting_ by C. Börgers, N. Dragovic, A. Haensch, 
+            A. Kirshtein and L. Orr](), where you can find more technical details 
+            along with our answers to the dicussion questions posed below and 
+            some suggested homework problems.
+            """)
+
+st.markdown("""Let's get started.""")
 
 ############## Section I #######################
 st.header("I. The Distribution of Voter Beliefs")
@@ -650,7 +666,8 @@ st.markdown(r"""The political environment discontinuously impacts the optimal
   strategy of the candidates.  In the chart below we example the final position 
   of the left-hand candidate as a function of $\gamma$ value.  To save computational
   costs, this is a static graph, and we assume that $\ell = -1$, $r = 2$, $\alpha = 1$ 
-  and $\beta = 0.2$.""")
+  and $\beta = 0.2$.  We're assuming a static underlying bimodal population with 
+  equally weighted centers at -1 and 1 with variance 0.5.""")
 
 # Read in data for left-candidate final position.
 df = pd.read_csv("discontinuity.csv", index_col = 0)
@@ -680,11 +697,17 @@ st.markdown("""If you want to try to generate this graph with different values,
   you can check out the accompanying script `optimal_left_position.py` in the 
   Github repository.""")
 
-st.markdown("""You can learn more about the mathematics behind this app in this 
-  paper: Börgers, Christoph, Bruce Boghosian, Natasa Dragovic, and Anna Haensch. 
-  _A blue sky bifurcation in the dynamics of political candidates._ 
+st.markdown("""You can learn more about the nature of these discontinuities in 
+  _A blue sky bifurcation in the dynamics of political candidates_ by C. 
+  Börgers, B. Boghosian, N. Dragovic, and A. Haensch,  
   [arXiv preprint arXiv:2302.07993](https://arxiv.org/abs/2302.07993) (2023).
   """)
+
+st.markdown("""All of the code used to create this web app is written in Python
+  and is available on Github at [https://github.com/annahaensch/Centrism]
+  (https://github.com/annahaensch/Centrism).
+  """)
+
 
 st.markdown("""Many thanks to the Tufts Data Intensive Studies Center for 
   supporting this work.
