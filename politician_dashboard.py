@@ -703,12 +703,13 @@ st.markdown("""You can learn more about the nature of these discontinuities in
   [arXiv preprint arXiv:2302.07993](https://arxiv.org/abs/2302.07993) (2023).
   """)
 
-st.markdown("""All of the code used to create this web app is written in Python
-  and is available on Github at [https://github.com/annahaensch/Centrism]
-  (https://github.com/annahaensch/Centrism).
-  """)
-
+st.header("""Acknowledgements""")
 
 st.markdown("""Many thanks to the Tufts Data Intensive Studies Center for 
   supporting this work.
+  """)
+
+st.markdown("""_All of the code used to create this web app is written in Python
+  and is available on 
+  Github at [https://github.com/annahaensch/Centrism](https://github.com/annahaensch/Centrism)._
   """)
