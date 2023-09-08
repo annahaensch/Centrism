@@ -11,7 +11,7 @@ LEFT_BLUE = "#8a9dba" #"#446B84"
 RIGHT_RED = "#f59585" #"#E58073"
 RIGHT_RED_DARK = "#cc4e3e"
 LEFT_BLUE_DARK = "#224f6b"
-CENTRIST_GREY = "#E8E8E8"
+CENTRIST_GREY = "#a2a2a2" #"#E8E8E8"
 
 def get_gaussian_mixture_model(means, variances, weights):
   """ Initialize multimodal model with chosen parameters.
