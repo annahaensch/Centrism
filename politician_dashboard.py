@@ -75,15 +75,12 @@ st.latex(r'''
     -\frac{1}{2}\left(\frac{x - \mu_m}{\sigma_m}\right)^2}.
     ''')
 
-#TODO: Change title.
-
 st.markdown("""In the boxes below enter the means and variances that you'd like 
   to use for each of the Gaussian modes.""")
 
 # Input means and variances as strings
 option = st.selectbox(
-        '''How many modes would you like your population to have?  
-        This is the _M_ in the equations above.  A set of viable means,
+        '''How many modes would you like your population to have?  This is the _M_ in the equations above.  A set of viable means,
         variances, and weights will be provided to you below, but you can
         edit them if you wish.''',
         ('1', '2', '3','4','5'),
@@ -246,7 +243,8 @@ chart_point = alt.Chart(point_df).mark_point(filled=True, size = 120).encode(
     shape = alt.value("triangle"),
     )
 
-st.altair_chart(chart_left + chart_right + chart_point, use_container_width=True)
+layer_chart = alt.layer(chart_left, chart_right, chart_point)
+st.altair_chart(layer_chart, use_container_width=True)
 
 st.markdown("""
   If voting is mandatory, then we assume everyone in the population shows up and votes 
@@ -337,7 +335,8 @@ line = alt.Chart(pd.DataFrame({'Vote Share': [0.5]})
                     tooltip=alt.value(None))
 
 # Display chart
-st.altair_chart(line + chart, use_container_width=True)
+layer_chart = alt.layer(line,chart)
+st.altair_chart(layer_chart, use_container_width=True)
 
 st.markdown("""As soon as the left candidate crosses the dashed line, they have 
   more than 50% of the votes and therefore they have won the election.""")
@@ -512,7 +511,6 @@ st.markdown(r"""Using the slider below, you can choose your $\gamma$ values.
 # Get gamma value from slider
 gamma = st.slider(r'Choose your $\gamma$ value',0.0, 5.0, (3.0))
 
-
 # Compute proportion voting for each candidate with voter loyalty
 ell_positions = np.linspace(m,R, 100)
 left_shares = []
@@ -552,7 +550,7 @@ chart = alt.Chart(chart_data_wide).mark_line().encode(
     strokeDash=' ',
     strokeWidth = alt.value(4)
     ).properties(
-        title='Proportion of Population Voting for Each Candidate as A Function of Position with Voter Loyalty'
+        title=f'Proportion of Population Voting for Each Candidate as a Function of Position with Voter Loyalty {gamma}'
     )
 
 # Display chart
@@ -632,7 +630,8 @@ line = alt.Chart(pd.DataFrame({'Rate of change in vote share': [0.],
                     tooltip=alt.value(None))
 
 # Display chart
-st.altair_chart(line + chart, use_container_width=True)
+layer_chart = alt.layer(line, chart)
+st.altair_chart(layer_chart, use_container_width=True)
 
 q = """
       <div style="margin-bottom: 10px; margin-left: 5px">
